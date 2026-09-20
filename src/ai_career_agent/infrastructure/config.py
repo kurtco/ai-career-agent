@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     )
 
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash-lite"
+    gemini_model: str = "gemini-3.5-flash-lite"
 
     deepseek_api_key: str = ""
     deepseek_model: str = "deepseek-v4-flash"

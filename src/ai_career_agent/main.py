@@ -25,8 +25,10 @@ from ai_career_agent.infrastructure.scraper.playwright_linkedin import (
 
 
 def build_llm_client() -> LLMClient:
-    """Compone el cliente LLM con fallback; como el providers array de Nest."""
+    """Compone el cliente LLM; fallback opcional si hay saldo en DeepSeek."""
     primary = GeminiClient(api_key=settings.gemini_api_key, model=settings.gemini_model)
+    if not settings.deepseek_api_key:
+        return primary
     fallback = DeepSeekClient(
         api_key=settings.deepseek_api_key, model=settings.deepseek_model
     )
