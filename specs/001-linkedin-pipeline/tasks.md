@@ -26,9 +26,9 @@
 
 ## Fase 4: Infraestructura
 
-- [ ] T010 — `PlaywrightLinkedInScraper`: stealth, `storage_state`, delays aleatorios, scroll, detección de captcha (Art. IV) — *código listo, pendiente validación real con `data/session_state.json`*
-- [ ] T011 — `GeminiClient`: structured output nativo (`response_schema`) con free tier, detrás de `LLMClient` (D3.1) — *código listo, pendiente validación con API key*
-- [ ] T011b — `DeepSeekClient`: fallback vía API compatible OpenAI (`base_url` platform.deepseek.com) — *código listo, pendiente validación con API key*
+- [x] T010 — `PlaywrightLinkedInScraper`: stealth, `storage_state`, delays aleatorios, scroll, detección de captcha (Art. IV) — validado con corrida real
+- [x] T011 — `GeminiClient`: structured output nativo (`response_schema`) con free tier, detrás de `LLMClient` (D3.1) — validado con corrida real
+- [ ] T011b — `DeepSeekClient`: fallback vía API compatible OpenAI (`base_url` platform.deepseek.com) — *código listo, pendiente validación con saldo*
 - [x] T011c — `LLMClientFacade`: intenta Gemini, ante rate limit/error 5xx cae a DeepSeek (Art. V.5) — verificado vía tests
 - [x] T012 — `SqliteRepository`: persistencia de ofertas procesadas en `data/history.db` (D3.4)
 - [x] T013 — `src/ai_career_agent/adapters/presenter.py`: salida por consola de drafts y scoring

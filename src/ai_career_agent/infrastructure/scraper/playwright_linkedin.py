@@ -1,5 +1,6 @@
 import asyncio
 import random
+import re
 from pathlib import Path
 from typing import List
 from urllib.parse import urljoin, urlparse
@@ -34,7 +35,7 @@ class PlaywrightLinkedInScraper(JobScraper):
             )
             page = await context.new_page()
 
-            await page.goto(search_url, wait_until="domcontentloaded")
+            await page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
             await self._assert_not_blocked(page)
             await self._human_delay()
             await self._organic_scroll(page)
@@ -70,33 +71,74 @@ class PlaywrightLinkedInScraper(JobScraper):
     async def _extract_job_detail(self, context, url: str) -> JobOffer | None:
         page = await context.new_page()
         try:
-            await page.goto(url, wait_until="domcontentloaded")
+            await page.goto(url, wait_until="domcontentloaded", timeout=60000)
             await self._assert_not_blocked(page)
             await self._human_delay()
             await self._organic_scroll(page)
+            await asyncio.sleep(2)  # Espera renderizado JS
 
-            job_id = self._extract_job_id(url)
-            title_el = await page.query_selector("h1")
-            title = await title_el.inner_text() if title_el else ""
-            company_el = await page.query_selector(".top-card-layout__card a")
-            company = await company_el.inner_text() if company_el else ""
-            location_el = await page.query_selector(".topcard__flavor-row span")
-            location = await location_el.inner_text() if location_el else ""
-            description_el = await page.query_selector(".description__text")
-            description = await description_el.inner_text() if description_el else ""
-
-            return JobOffer(
-                id=job_id,
-                title=title.strip(),
-                company=company.strip(),
-                location=location.strip(),
-                description=description.strip(),
-                url=url,
-            )
+            body_text = await page.inner_text("body")
+            page_title = await page.title()
+            return self._parse_job_detail(url, body_text, page_title)
         except Exception:
             return None
         finally:
             await page.close()
+
+    def _parse_job_detail(self, url: str, body_text: str, page_title: str) -> JobOffer:
+        """Extrae campos desde el texto visible; LinkedIn usa clases dinámicas."""
+        job_id = self._extract_job_id(url)
+        title, company = self._extract_title_and_company(page_title)
+        location = self._extract_location(body_text)
+        description = self._extract_description(body_text)
+
+        text_lower = body_text.lower()
+        is_remote = "remote" in text_lower or "remoto" in text_lower
+        contract_type = ContractType.UNKNOWN
+        if "full-time" in text_lower or "tiempo completo" in text_lower:
+            contract_type = ContractType.FULL_TIME
+        elif "part-time" in text_lower or "medio tiempo" in text_lower:
+            contract_type = ContractType.PART_TIME
+        elif "contract" in text_lower or "contrato" in text_lower:
+            contract_type = ContractType.CONTRACT
+
+        return JobOffer(
+            id=job_id,
+            title=title,
+            company=company,
+            location=location,
+            description=description,
+            url=url,
+            is_remote=is_remote,
+            contract_type=contract_type,
+        )
+
+    @staticmethod
+    def _extract_title_and_company(page_title: str) -> tuple[str, str]:
+        # Título típico: "Job Title | Company | LinkedIn"
+        parts = [p.strip() for p in page_title.split("|")]
+        title = parts[0] if parts else ""
+        company = parts[-2] if len(parts) >= 3 else ""
+        return title, company
+
+    @staticmethod
+    def _extract_location(body_text: str) -> str:
+        # Línea tipo: "Latin America · 5 days ago · Over 100 people clicked apply"
+        match = re.search(r"^([^\n·]+?)\s*·\s*\d+\s+day[s]?\s+ago", body_text, re.MULTILINE | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+        return ""
+
+    @staticmethod
+    def _extract_description(body_text: str) -> str:
+        match = re.search(
+            r"About the job\s*\n+(.*?)(?:\n+Set alert for similar jobs|\n+\.\.\.)",
+            body_text,
+            re.DOTALL | re.IGNORECASE,
+        )
+        if match:
+            return re.sub(r"\n{2,}", "\n", match.group(1).strip())
+        return ""
 
     async def _assert_not_blocked(self, page) -> None:
         url = page.url
