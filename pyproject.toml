@@ -1,0 +1,32 @@
+[project]
+name = "ai-career-agent"
+version = "0.1.0"
+description = "Agente autónomo para evaluar ofertas de LinkedIn y generar mensajes de postulación"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "apscheduler>=3.11.3",
+    "google-genai>=2.24.0",
+    "openai>=3.16.2",
+    "playwright>=1.63.0",
+    "playwright-stealth>=2.0.3",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+]
+
+[project.scripts]
+ai-career-agent = "ai_career_agent.main:main"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
