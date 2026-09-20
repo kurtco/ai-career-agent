@@ -14,6 +14,7 @@
 - `uv run pytest` — ejecuta la suite de tests.
 - `uv run ai-career-agent --now` — corre el pipeline una vez (requiere `.env` + `data/session_state.json`).
 - `uv run python scripts/create_session.py` — abre LinkedIn para logueo manual y guarda `data/session_state.json`.
+- `uv run playwright install chromium` — descarga el navegador de Playwright (necesario la primera vez).
 
 ## Current state
 

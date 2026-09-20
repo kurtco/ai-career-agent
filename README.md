@@ -28,9 +28,10 @@ Clean Architecture: `domain` → `application` → `adapters` → `infrastructur
 
 ## Setup
 
-1. Install dependencies:
+1. Install dependencies and Playwright browsers:
    ```bash
    uv sync
+   uv run playwright install chromium
    ```
 
 2. Copy the environment template and add your API keys:
