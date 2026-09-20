@@ -41,7 +41,8 @@
 
 ## Anti-ban guardrails for LinkedIn scraping
 
-- Load session state from `data/session_state.json` — zero automated login flows.
+- **Use a secondary LinkedIn account for scraping.** Never run the agent with your personal profile.
+- Load session state from `data/session_state.json` — zero automated login flows and **never store LinkedIn passwords in `.env`.**
 - Random organic delays + scroll before DOM extraction.
 - Hard daily cap: 20–30 offers/day, persisted in `data/history.db` to survive restarts.
 - On captcha/block: abort and log; **no retries**.

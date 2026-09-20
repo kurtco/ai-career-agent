@@ -20,6 +20,12 @@ Clean Architecture: `domain` → `application` → `adapters` → `infrastructur
 - **Scraper:** Playwright with session persistence.
 - **Scheduler:** runs daily at 9:00 AM `America/Bogota`.
 
+## Account safety
+
+- **Use a secondary LinkedIn account for the agent.** Do not run the scraper with your personal profile; LinkedIn may restrict or suspend accounts that show automated behavior.
+- **Do not store your LinkedIn password in `.env`.** The login is manual (`scripts/create_session.py` opens a real browser). Keeping the password in `.env` is unnecessary and a security risk.
+- Keep the daily offer limit low, and stop immediately if LinkedIn shows a captcha or security checkpoint.
+
 ## Setup
 
 1. Install dependencies:
@@ -34,7 +40,7 @@ Clean Architecture: `domain` → `application` → `adapters` → `infrastructur
    - Get a free `GEMINI_API_KEY` at [Google AI Studio](https://aistudio.google.com/app/apikey).
    - Get a `DEEPSEEK_API_KEY` at [DeepSeek Platform](https://platform.deepseek.com/api_keys).
 
-3. Create a LinkedIn session manually:
+3. Create a LinkedIn session manually with your secondary account:
    ```bash
    uv run python scripts/create_session.py
    ```
