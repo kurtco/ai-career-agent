@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Career Agent — {{ date }}</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --green: #22c55e;
+      --orange: #f97316;
+      --red: #ef4444;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      padding: 2rem 1rem;
+      text-align: center;
+      border-bottom: 1px solid #334155;
+    }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header p { margin: 0.5rem 0 0; color: var(--muted); }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .stat { font-weight: 600; }
+    .stat.green { color: var(--green); }
+    .stat.orange { color: var(--orange); }
+    .stat.red { color: var(--red); }
+
+    main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+    .section { margin-bottom: 2rem; }
+    .section h2 {
+      margin: 0 0 1rem;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      border-left: 5px solid var(--muted);
+    }
+    .card.green { border-left-color: var(--green); }
+    .card.orange { border-left-color: var(--orange); }
+    .card.red { border-left-color: var(--red); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .job-title { margin: 0; font-size: 1.1rem; }
+    .company { color: var(--muted); font-size: 0.95rem; }
+    .badge {
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge.green { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge.orange { background: rgba(249,115,22,0.15); color: var(--orange); }
+    .badge.red { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    .reason { color: var(--muted); margin: 0.75rem 0; font-size: 0.95rem; }
+
+    .link a {
+      color: var(--accent);
+      word-break: break-all;
+      text-decoration: none;
+    }
+    .link a:hover { text-decoration: underline; }
+
+    .draft {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      background: #334155;
+      color: var(--text);
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #475569; }
+    .btn.copied { background: var(--green); }
+
+    .empty { color: var(--muted); font-style: italic; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI Career Agent</h1>
+    <p>Reporte del {{ date }}</p>
+    <div class="stats">
+      <span class="stat green">{{ green_count }} verdes</span>
+      <span class="stat orange">{{ orange_count }} naranjas</span>
+      <span class="stat red">{{ red_count }} rojas</span>
+      <span class="stat">{{ total }} total</span>
+    </div>
+  </header>
+
+  <main>
+    {% macro render_card(offer, draft) %}
+    <div class="card {{ offer.score.value }}" id="offer-{{ offer.id }}">
+      <div class="card-header">
+        <div>
+          <h3 class="job-title">{{ offer.title }}</h3>
+          <div class="company">{{ offer.company }}</div>
+        </div>
+        <span class="badge {{ offer.score.value }}">{{ offer.score.value }}</span>
+      </div>
+
+      <div class="reason">{{ offer.reason }}</div>
+
+      <div class="link">
+        <a href="{{ offer.url }}" target="_blank" rel="noopener">{{ offer.url }}</a>
+      </div>
+
+      {% if draft %}
+      <pre class="draft" id="draft-{{ offer.id }}">{{ draft.content }}</pre>
+      {% endif %}
+
+      <div class="actions">
+        {% if draft %}
+        <button class="btn" onclick="copyText('draft-{{ offer.id }}', this)">Copiar mensaje</button>
+        {% endif %}
+        <button class="btn" onclick="copyCustom('{{ offer.title }} | {{ offer.url }}', this)">Copiar título + link</button>
+        <button class="btn" onclick="copyCustom('{{ offer.url }}', this)">Copiar link</button>
+      </div>
+    </div>
+    {% endmacro %}
+
+    <section class="section">
+      <h2>🟢 Verde</h2>
+      {% if green_offers %}
+        {% for offer, draft in green_offers %}
+          {{ render_card(offer, draft) }}
+        {% endfor %}
+      {% else %}
+        <p class="empty">No hay ofertas verdes hoy.</p>
+      {% endif %}
+    </section>
+
+    <section class="section">
+      <h2>🟠 Naranja</h2>
+      {% if orange_offers %}
+        {% for offer, draft in orange_offers %}
+          {{ render_card(offer, draft) }}
+        {% endfor %}
+      {% else %}
+        <p class="empty">No hay ofertas naranjas hoy.</p>
+      {% endif %}
+    </section>
+
+    <section class="section">
+      <h2>🔴 Rojo</h2>
+      {% if red_offers %}
+        {% for offer, draft in red_offers %}
+          {{ render_card(offer, draft) }}
+        {% endfor %}
+      {% else %}
+        <p class="empty">No hay ofertas rojas hoy.</p>
+      {% endif %}
+    </section>
+  </main>
+
+  <script>
+    async function copyText(elementId, btn) {
+      const text = document.getElementById(elementId).innerText;
+      await navigator.clipboard.writeText(text);
+      showCopied(btn);
+    }
+
+    async function copyCustom(text, btn) {
+      await navigator.clipboard.writeText(text);
+      showCopied(btn);
+    }
+
+    function showCopied(btn) {
+      const original = btn.innerText;
+      btn.innerText = 'Copiado!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerText = original;
+        btn.classList.remove('copied');
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

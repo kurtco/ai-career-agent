@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     db_path: Path = Path("data/history.db")
     session_state_path: Path = Path("data/session_state.json")
     cv_path: Path = Path("data/cv.md")
+    reports_dir: Path = Path("data/reports")
+    auto_open_report: bool = True
     linkedin_search_url: str = (
         "https://www.linkedin.com/jobs/search/?keywords=typescript"
     )

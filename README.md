@@ -75,6 +75,10 @@ Run the pipeline immediately:
 uv run ai-career-agent --now
 ```
 
+After each run, an HTML report is generated in `data/reports/` and opened automatically in your browser. It shows every offer, the score, the reason, the LinkedIn URL and a copy-to-clipboard button for the draft message.
+
+Use `--no-open` if you do not want the browser to open automatically.
+
 ## Testing
 
 ```bash

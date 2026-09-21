@@ -6,6 +6,7 @@ from pathlib import Path
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from ai_career_agent.adapters.html_report import HtmlReportGenerator
 from ai_career_agent.adapters.presenter import ConsolePresenter
 from ai_career_agent.application.use_cases.evaluate_job import EvaluateJobUseCase
 from ai_career_agent.application.use_cases.fetch_offers import FetchOffersUseCase
@@ -63,6 +64,7 @@ async def run_once() -> None:
         cv_text = settings.cv_path.read_text(encoding="utf-8")
     generate_use_case = GenerateMessageUseCase(llm_client, cv_text)
     presenter = ConsolePresenter()
+    report = HtmlReportGenerator(settings.reports_dir, auto_open=settings.auto_open_report)
 
     search_urls = [settings.linkedin_search_url]
     alerts_parser = LinkedInJobAlertsParser(settings.linkedin_export_path)
@@ -78,6 +80,11 @@ async def run_once() -> None:
             if offer.score in (Score.GREEN, Score.ORANGE):
                 draft = await generate_use_case.execute(offer)
             presenter.show(offer, draft)
+            report.add(offer, draft)
+
+    if report._entries:
+        report_path = report.generate()
+        print(f"\n📄 Reporte HTML: {report_path}")
 
 
 async def run_scheduler() -> None:
@@ -94,7 +101,16 @@ async def run_scheduler() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="AI Career Agent")
     parser.add_argument("--now", action="store_true", help="Ejecuta una vez ahora")
+    parser.add_argument(
+        "--no-open",
+        dest="no_open",
+        action="store_true",
+        help="No abre el reporte HTML automáticamente",
+    )
     args = parser.parse_args()
+
+    if args.no_open:
+        settings.auto_open_report = False
 
     if args.now:
         asyncio.run(run_once())

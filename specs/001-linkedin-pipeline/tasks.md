@@ -48,3 +48,10 @@
 - [x] T018 — Parser de `Job Alerts.csv` desde `data/linkedin_export/` (`LinkedInJobAlertsParser`)
 - [x] T019 — Main loop itera sobre `LINKEDIN_SEARCH_URL` + URLs de Job Alerts respetando el límite diario
 - [x] T020 — Documentar importación de Job Alerts en `README.md` y `.env.example`
+
+## Fase 8: Reporte HTML
+
+- [x] T021 — Generar reporte HTML con ofertas, scores, razones, URLs y drafts
+- [x] T022 — Botones de copiar al portapapeles (mensaje, título+link, link)
+- [x] T023 — Abrir reporte HTML automáticamente al terminar; soportar `--no-open`
+- [x] T024 — Documentar reporte HTML en `README.md` y `AGENTS.md`
