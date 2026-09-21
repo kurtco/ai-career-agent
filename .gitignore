@@ -7,3 +7,5 @@ __pycache__/
 data/session_state.json
 data/history.db
 data/cv.md
+data/linkedin_export/
+*.zip
