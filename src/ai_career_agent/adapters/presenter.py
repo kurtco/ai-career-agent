@@ -10,5 +10,6 @@ class ConsolePresenter(MessagePresenter):
         print(f"\n{emoji} {offer.title} @ {offer.company}")
         print(f"   Score: {offer.score.value}")
         print(f"   Razón: {offer.reason}")
+        print(f"   URL: {offer.url}")
         if draft:
             print(f"\n💬 Draft ({len(draft.content)} chars):\n{draft.content}\n")
