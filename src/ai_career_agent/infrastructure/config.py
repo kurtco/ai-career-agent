@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,17 +24,13 @@ class Settings(BaseSettings):
     session_state_path: Path = Path("data/session_state.json")
     cv_path: Path = Path("data/cv.md")
     linkedin_search_url: str = (
-        "https://www.linkedin.com/jobs/search/?f_TPR=r86400&keywords=typescript"
+        "https://www.linkedin.com/jobs/search/?keywords=typescript"
     )
-    company_blacklist: list[str] = Field(default_factory=list)
+    company_blacklist: str = ""
 
-    @field_validator("company_blacklist", mode="before")
-    @classmethod
-    def _split_blacklist(cls, value):
-        """Permite COMPANY_BLACKLIST=BairesDev,Solvd,GlobalLogic en .env."""
-        if isinstance(value, str):
-            return [item.strip() for item in value.split(",") if item.strip()]
-        return value
+    def company_blacklist_list(self) -> list[str]:
+        """Parsea COMPANY_BLACKLIST=BairesDev,Solvd en lista."""
+        return [item.strip() for item in self.company_blacklist.split(",") if item.strip()]
 
 
 settings = Settings()

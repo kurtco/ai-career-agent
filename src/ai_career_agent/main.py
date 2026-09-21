@@ -52,7 +52,7 @@ async def run_once() -> None:
         repository=repository,
         evaluate_use_case=evaluate_use_case,
         daily_limit=settings.daily_offer_limit,
-        company_blacklist=settings.company_blacklist,
+        company_blacklist=settings.company_blacklist_list(),
     )
 
     cv_text = ""

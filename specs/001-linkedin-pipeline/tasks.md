@@ -41,4 +41,4 @@
 ## Fase 6: Validación
 
 - [x] T016 — Tests de criterios de aceptación CA-1 a CA-4 (evaluación del semáforo con mocks del LLM); 6 tests pasan
-- [ ] T017 — Prueba manual E2E: corrida real con ≤5 ofertas verificando delays y persistencia — *bloqueada hasta tener API keys + `data/session_state.json`*
+- [x] T017 — Prueba manual E2E: corrida real con ≤5 ofertas verificando delays y persistencia — validada con 3 ofertas reales

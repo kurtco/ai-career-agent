@@ -15,6 +15,9 @@ from ai_career_agent.domain.ports import JobScraper, LLMClient, OfferRepository
 from ai_career_agent.infrastructure.persistence.sqlite_repository import (
     SqliteOfferRepository,
 )
+from ai_career_agent.infrastructure.scraper.playwright_linkedin import (
+    PlaywrightLinkedInScraper,
+)
 
 
 class FakeRepository(OfferRepository):
@@ -234,3 +237,13 @@ async def test_repository_counts_today_respecting_timezone(repo):
     offer.processed_at = datetime.now(timezone.utc) - timedelta(hours=3)
     repo.save(offer)
     assert repo.count_today() == 1
+
+
+def test_ensure_last_24h_filter():
+    url_without = "https://www.linkedin.com/jobs/search?keywords=typescript"
+    url_with_other = "https://www.linkedin.com/jobs/search?keywords=typescript&f_TPR=r604800"
+
+    assert "f_TPR=r86400" in PlaywrightLinkedInScraper._ensure_last_24h(url_without)
+    assert PlaywrightLinkedInScraper._ensure_last_24h(url_with_other) == (
+        "https://www.linkedin.com/jobs/search?keywords=typescript&f_TPR=r86400"
+    )

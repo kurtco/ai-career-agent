@@ -40,7 +40,7 @@ Clean Architecture: `domain` → `application` → `adapters` → `infrastructur
    ```
    - Get a free `GEMINI_API_KEY` at [Google AI Studio](https://aistudio.google.com/app/apikey).
    - Get a `DEEPSEEK_API_KEY` at [DeepSeek Platform](https://platform.deepseek.com/api_keys).
-   - Optional: set `COMPANY_BLACKLIST=BairesDev,Solvd` to skip companies you don't want.
+   - Optional: set `COMPANY_BLACKLIST=BairesDev` to skip companies you don't want.
 
 3. Create a LinkedIn session manually with your secondary account:
    ```bash

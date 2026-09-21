@@ -3,7 +3,7 @@ import random
 import re
 from pathlib import Path
 from typing import List
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qs, urlencode, urljoin, urlparse, urlunparse
 
 from playwright.async_api import async_playwright
 from playwright_stealth import Stealth
@@ -35,6 +35,7 @@ class PlaywrightLinkedInScraper(JobScraper):
             )
             page = await context.new_page()
 
+            search_url = self._ensure_last_24h(search_url)
             await page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
             await self._assert_not_blocked(page)
             await self._human_delay()
@@ -151,6 +152,15 @@ class PlaywrightLinkedInScraper(JobScraper):
         path = urlparse(url).path
         parts = [p for p in path.split("/") if p.isdigit()]
         return parts[0] if parts else url
+
+    @staticmethod
+    def _ensure_last_24h(url: str) -> str:
+        """Fuerza el filtro de LinkedIn para ofertas de las últimas 24 horas."""
+        parsed = urlparse(url)
+        query = parse_qs(parsed.query)
+        query["f_TPR"] = ["r86400"]
+        new_query = urlencode(query, doseq=True)
+        return urlunparse(parsed._replace(query=new_query))
 
     async def _organic_scroll(self, page) -> None:
         for _ in range(random.randint(2, 4)):
