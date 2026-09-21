@@ -15,11 +15,13 @@ class FetchOffersUseCase:
         repository: OfferRepository,
         evaluate_use_case,
         daily_limit: int = 30,
+        company_blacklist: List[str] | None = None,
     ):
         self.scraper = scraper
         self.repository = repository
         self.evaluate_use_case = evaluate_use_case
         self.daily_limit = daily_limit
+        self.company_blacklist = {c.lower() for c in (company_blacklist or [])}
 
     async def execute(self, search_url: str) -> List[JobOffer]:
         processed_today = self.repository.count_today()
@@ -35,8 +37,13 @@ class FetchOffersUseCase:
 
         evaluated: List[JobOffer] = []
         for offer in offers:
+            if self._is_blacklisted(offer):
+                continue
             if self.repository.exists(offer.id):
                 continue
             scored = await self.evaluate_use_case.execute(offer)
             evaluated.append(scored)
         return evaluated
+
+    def _is_blacklisted(self, offer: JobOffer) -> bool:
+        return offer.company.strip().lower() in self.company_blacklist

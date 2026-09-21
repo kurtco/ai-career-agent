@@ -206,6 +206,26 @@ async def test_daily_limit_blocks_fetch(fake_repo, fake_llm):
 
 
 @pytest.mark.asyncio
+async def test_blacklisted_company_is_skipped(fake_repo, fake_llm):
+    offers = [
+        JobOffer(id="b1", title="Dev", company="BairesDev"),
+        JobOffer(id="g1", title="Dev", company="GoodCorp"),
+    ]
+    scored = JobOffer(id="g1", title="Dev", company="GoodCorp", score=Score.GREEN)
+    fake_llm.results = {"g1": scored}
+    scraper = FakeScraper(offers)
+    evaluate = EvaluateJobUseCase(fake_llm, fake_repo)
+    fetch = FetchOffersUseCase(
+        scraper, fake_repo, evaluate, company_blacklist=["BairesDev"]
+    )
+
+    result = await fetch.execute("http://example.com")
+    assert len(result) == 1
+    assert result[0].company == "GoodCorp"
+    assert not fake_repo.exists("b1")
+
+
+@pytest.mark.asyncio
 async def test_repository_counts_today_respecting_timezone(repo):
     from datetime import datetime, timedelta, timezone
 
