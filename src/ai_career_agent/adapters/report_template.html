@@ -163,8 +163,8 @@
         {% if draft %}
         <button class="btn" onclick="copyText('draft-{{ offer.id }}', this)">Copiar mensaje</button>
         {% endif %}
-        <button class="btn" onclick="copyCustom('{{ offer.title }} | {{ offer.url }}', this)">Copiar título + link</button>
-        <button class="btn" onclick="copyCustom('{{ offer.url }}', this)">Copiar link</button>
+        <button class="btn" onclick="copyCustom('{{ offer.title | e }} | {{ offer.url | e }}', this)">Copiar título + link</button>
+        <button class="btn" onclick="copyCustom('{{ offer.url | e }}', this)">Copiar link</button>
       </div>
     </div>
     {% endmacro %}
