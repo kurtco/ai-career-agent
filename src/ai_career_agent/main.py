@@ -16,6 +16,9 @@ from ai_career_agent.infrastructure.config import settings
 from ai_career_agent.infrastructure.llm.deepseek_client import DeepSeekClient
 from ai_career_agent.infrastructure.llm.facade import LLMClientFacade
 from ai_career_agent.infrastructure.llm.gemini_client import GeminiClient
+from ai_career_agent.infrastructure.parsers.linkedin_job_alerts_parser import (
+    LinkedInJobAlertsParser,
+)
 from ai_career_agent.infrastructure.persistence.sqlite_repository import (
     SqliteOfferRepository,
 )
@@ -61,12 +64,20 @@ async def run_once() -> None:
     generate_use_case = GenerateMessageUseCase(llm_client, cv_text)
     presenter = ConsolePresenter()
 
-    offers = await fetch_use_case.execute(settings.linkedin_search_url)
-    for offer in offers:
-        draft = None
-        if offer.score in (Score.GREEN, Score.ORANGE):
-            draft = await generate_use_case.execute(offer)
-        presenter.show(offer, draft)
+    search_urls = [settings.linkedin_search_url]
+    alerts_parser = LinkedInJobAlertsParser(settings.linkedin_export_path)
+    alert_urls = alerts_parser.parse_search_urls()
+    search_urls.extend(alert_urls)
+
+    for search_url in search_urls:
+        if repository.count_today() >= settings.daily_offer_limit:
+            break
+        offers = await fetch_use_case.execute(search_url)
+        for offer in offers:
+            draft = None
+            if offer.score in (Score.GREEN, Score.ORANGE):
+                draft = await generate_use_case.execute(offer)
+            presenter.show(offer, draft)
 
 
 async def run_scheduler() -> None:

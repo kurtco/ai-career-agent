@@ -40,13 +40,22 @@ Clean Architecture: `domain` → `application` → `adapters` → `infrastructur
    ```
    - Get a free `GEMINI_API_KEY` at [Google AI Studio](https://aistudio.google.com/app/apikey).
    - Get a `DEEPSEEK_API_KEY` at [DeepSeek Platform](https://platform.deepseek.com/api_keys).
-   - Optional: set `COMPANY_BLACKLIST=BairesDev` to skip companies you don't want.
+   - Optional: set `COMPANY_BLACKLIST=BairesDev,Lumenalta` to skip companies you don't want.
+   - Optional: set `LINKEDIN_EXPORT_PATH=data/linkedin_export` if you want to import your LinkedIn Job Alerts.
 
 3. Create a LinkedIn session manually with your secondary account:
    ```bash
    uv run python scripts/create_session.py
    ```
    Log in inside the opened browser, then press Enter in the terminal. This saves `data/session_state.json`.
+
+## LinkedIn Job Alerts import
+
+If you have Job Alerts configured in LinkedIn:
+
+1. Request your data export at [LinkedIn Data Export](https://www.linkedin.com/mypreferences/d/download-my-data).
+2. When the email arrives, download and unzip the archive into `data/linkedin_export/`.
+3. The agent will automatically read `Job Alerts.csv` and run each saved search in addition to `LINKEDIN_SEARCH_URL`.
 
 ## Running every day
 

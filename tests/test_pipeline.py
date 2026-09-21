@@ -12,6 +12,9 @@ from ai_career_agent.domain.entities import (
     Score,
 )
 from ai_career_agent.domain.ports import JobScraper, LLMClient, OfferRepository
+from ai_career_agent.infrastructure.parsers.linkedin_job_alerts_parser import (
+    LinkedInJobAlertsParser,
+)
 from ai_career_agent.infrastructure.persistence.sqlite_repository import (
     SqliteOfferRepository,
 )
@@ -247,3 +250,21 @@ def test_ensure_last_24h_filter():
     assert PlaywrightLinkedInScraper._ensure_last_24h(url_with_other) == (
         "https://www.linkedin.com/jobs/search?keywords=typescript&f_TPR=r86400"
     )
+
+
+def test_parse_job_alerts_csv(tmp_path):
+    export_dir = tmp_path / "linkedin_export"
+    export_dir.mkdir()
+    csv_file = export_dir / "Job Alerts.csv"
+    csv_file.write_text(
+        "Title,Search URL,Frequency\n"
+        "TypeScript Remote,https://www.linkedin.com/jobs/search?keywords=typescript&f_TPR=r86400,Daily\n"
+        "Node.js LATAM,https://www.linkedin.com/jobs/search?keywords=nodejs&Daily\n",
+        encoding="utf-8",
+    )
+
+    parser = LinkedInJobAlertsParser(export_dir)
+    urls = parser.parse_search_urls()
+    assert len(urls) == 2
+    assert "https://www.linkedin.com/jobs/search?keywords=typescript&f_TPR=r86400" in urls
+    assert "https://www.linkedin.com/jobs/search?keywords=nodejs&Daily" in urls

@@ -42,3 +42,9 @@
 
 - [x] T016 — Tests de criterios de aceptación CA-1 a CA-4 (evaluación del semáforo con mocks del LLM); 6 tests pasan
 - [x] T017 — Prueba manual E2E: corrida real con ≤5 ofertas verificando delays y persistencia — validada con 3 ofertas reales
+
+## Fase 7: Importar Job Alerts de LinkedIn
+
+- [x] T018 — Parser de `Job Alerts.csv` desde `data/linkedin_export/` (`LinkedInJobAlertsParser`)
+- [x] T019 — Main loop itera sobre `LINKEDIN_SEARCH_URL` + URLs de Job Alerts respetando el límite diario
+- [x] T020 — Documentar importación de Job Alerts en `README.md` y `.env.example`

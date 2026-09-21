@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     linkedin_search_url: str = (
         "https://www.linkedin.com/jobs/search/?keywords=typescript"
     )
+    linkedin_export_path: Path = Path("data/linkedin_export")
     company_blacklist: str = ""
 
     def company_blacklist_list(self) -> list[str]:
