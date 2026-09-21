@@ -79,6 +79,12 @@ After each run, an HTML report is generated in `data/reports/` and opened automa
 
 Use `--no-open` if you do not want the browser to open automatically.
 
+To regenerate today's report from the local database without running a new search:
+
+```bash
+uv run ai-career-agent --report-only
+```
+
 ## Testing
 
 ```bash

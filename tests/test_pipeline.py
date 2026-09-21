@@ -26,6 +26,7 @@ from ai_career_agent.infrastructure.scraper.playwright_linkedin import (
 class FakeRepository(OfferRepository):
     def __init__(self):
         self.offers: dict[str, JobOffer] = {}
+        self.drafts: dict[str, str] = {}
         self._count_today = 0
 
     def count_today(self) -> int:
@@ -36,6 +37,12 @@ class FakeRepository(OfferRepository):
 
     def save(self, offer: JobOffer) -> None:
         self.offers[offer.id] = offer
+
+    def find_today(self) -> list[tuple[JobOffer, str | None]]:
+        return [(offer, self.drafts.get(offer_id)) for offer_id, offer in self.offers.items()]
+
+    def save_draft(self, offer_id: str, draft_content: str) -> None:
+        self.drafts[offer_id] = draft_content
 
     def set_count_today(self, value: int) -> None:
         self._count_today = value

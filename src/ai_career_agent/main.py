@@ -11,7 +11,7 @@ from ai_career_agent.adapters.presenter import ConsolePresenter
 from ai_career_agent.application.use_cases.evaluate_job import EvaluateJobUseCase
 from ai_career_agent.application.use_cases.fetch_offers import FetchOffersUseCase
 from ai_career_agent.application.use_cases.generate_message import GenerateMessageUseCase
-from ai_career_agent.domain.entities import Score
+from ai_career_agent.domain.entities import MessageDraft, Score
 from ai_career_agent.domain.ports import LLMClient
 from ai_career_agent.infrastructure.config import settings
 from ai_career_agent.infrastructure.llm.deepseek_client import DeepSeekClient
@@ -79,6 +79,7 @@ async def run_once() -> None:
             draft = None
             if offer.score in (Score.GREEN, Score.ORANGE):
                 draft = await generate_use_case.execute(offer)
+                repository.save_draft(offer.id, draft.content)
             presenter.show(offer, draft)
             report.add(offer, draft)
 
@@ -98,6 +99,23 @@ async def run_scheduler() -> None:
         scheduler.shutdown()
 
 
+async def generate_report_only() -> None:
+    """Genera el reporte HTML desde las ofertas guardadas hoy sin hacer scraping."""
+    repository = SqliteOfferRepository(settings.db_path, settings.timezone)
+    entries = repository.find_today()
+    if not entries:
+        print("No hay ofertas procesadas hoy para generar el reporte.")
+        return
+
+    report = HtmlReportGenerator(settings.reports_dir, auto_open=settings.auto_open_report)
+    for offer, draft_content in entries:
+        draft = MessageDraft(offer_id=offer.id, content=draft_content) if draft_content else None
+        report.add(offer, draft)
+
+    report_path = report.generate()
+    print(f"\n📄 Reporte HTML: {report_path}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="AI Career Agent")
     parser.add_argument("--now", action="store_true", help="Ejecuta una vez ahora")
@@ -107,12 +125,19 @@ def main() -> None:
         action="store_true",
         help="No abre el reporte HTML automáticamente",
     )
+    parser.add_argument(
+        "--report-only",
+        action="store_true",
+        help="Genera el reporte HTML desde las ofertas de hoy sin nueva búsqueda",
+    )
     args = parser.parse_args()
 
     if args.no_open:
         settings.auto_open_report = False
 
-    if args.now:
+    if args.report_only:
+        asyncio.run(generate_report_only())
+    elif args.now:
         asyncio.run(run_once())
     else:
         asyncio.run(run_scheduler())

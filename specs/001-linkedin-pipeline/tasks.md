@@ -55,3 +55,5 @@
 - [x] T022 — Botones de copiar al portapapeles (mensaje, título+link, link)
 - [x] T023 — Abrir reporte HTML automáticamente al terminar; soportar `--no-open`
 - [x] T024 — Documentar reporte HTML en `README.md` y `AGENTS.md`
+- [x] T025 — Persistir ofertas completas + drafts en SQLite para regenerar reportes
+- [x] T026 — Comando `--report-only` para generar HTML desde `history.db` sin nueva búsqueda

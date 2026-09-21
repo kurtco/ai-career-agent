@@ -14,6 +14,7 @@
 - `uv run pytest` — ejecuta la suite de tests.
 - `uv run ai-career-agent --now` — corre el pipeline una vez (requiere `.env` + `data/session_state.json`). Genera y abre automáticamente un reporte HTML en `data/reports/`.
 - `uv run ai-career-agent --now --no-open` — igual, pero no abre el navegador.
+- `uv run ai-career-agent --report-only` — regenera el reporte HTML desde `data/history.db` sin nueva búsqueda.
 - `uv run python scripts/create_session.py` — abre LinkedIn para logueo manual y guarda `data/session_state.json`.
 - `uv run playwright install chromium` — descarga el navegador de Playwright (necesario la primera vez).
 

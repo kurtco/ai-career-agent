@@ -45,6 +45,16 @@ class OfferRepository(ABC):
         """Indica si la oferta ya fue procesada."""
         raise NotImplementedError
 
+    @abstractmethod
+    def find_today(self) -> list[tuple[JobOffer, str | None]]:
+        """Devuelve ofertas procesadas hoy y su draft (si existe)."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def save_draft(self, offer_id: str, draft_content: str) -> None:
+        """Guarda el draft generado para una oferta."""
+        raise NotImplementedError
+
 
 class MessagePresenter(ABC):
     """Puerto para presentar resultados; como un controller/formatter."""
