@@ -231,15 +231,6 @@ async def test_blacklisted_company_is_skipped(fake_repo, fake_llm):
     assert not fake_repo.exists("b1")
 
 
-@pytest.mark.asyncio
-async def test_repository_counts_today_respecting_timezone(repo):
-    from datetime import datetime, timedelta, timezone
-
-    offer = JobOffer(id="r1", title="T", company="C", score=Score.GREEN)
-    # Hora en UTC que aún es hoy en Bogotá (UTC-5)
-    offer.processed_at = datetime.now(timezone.utc) - timedelta(hours=3)
-    repo.save(offer)
-    assert repo.count_today() == 1
 
 
 def test_ensure_last_24h_filter():
@@ -268,3 +259,42 @@ def test_parse_job_alerts_csv(tmp_path):
     assert len(urls) == 2
     assert "https://www.linkedin.com/jobs/search?keywords=typescript&f_TPR=r86400" in urls
     assert "https://www.linkedin.com/jobs/search?keywords=nodejs&Daily" in urls
+
+
+@pytest.mark.asyncio
+async def test_missing_salary_is_orange_not_red(fake_repo, fake_llm):
+    offer = JobOffer(
+        id="5",
+        title="Full-Stack Node/React",
+        company="GoodCorp",
+        stack_tags=["nodejs", "react", "typescript"],
+        is_remote=True,
+        contract_type=ContractType.FULL_TIME,
+    )
+    scored = JobOffer(
+        id="5",
+        title="Full-Stack Node/React",
+        company="GoodCorp",
+        score=Score.ORANGE,
+        reason="No especifica salario; stack remoto full-time coincide",
+    )
+    fake_llm.results["5"] = scored
+
+    use_case = EvaluateJobUseCase(fake_llm, fake_repo)
+    result = await use_case.execute(offer)
+
+    assert result.score == Score.ORANGE
+    generate = GenerateMessageUseCase(fake_llm, "cv")
+    draft = await generate.execute(result)
+    assert draft is not None
+
+
+@pytest.mark.asyncio
+async def test_repository_counts_today_respecting_timezone(repo):
+    from datetime import datetime, timedelta, timezone
+
+    offer = JobOffer(id="r1", title="T", company="C", score=Score.GREEN)
+    # Hora en UTC que aún es hoy en Bogotá (UTC-5)
+    offer.processed_at = datetime.now(timezone.utc) - timedelta(hours=3)
+    repo.save(offer)
+    assert repo.count_today() == 1

@@ -12,7 +12,8 @@ El sistema extrae ofertas de LinkedIn (máx. 20-30 diarias, ver constitución Ar
 
 - **R1.1** Objetivo ideal: $5,000 – $7,000+ USD/mes.
 - **R1.2** Excepción condicional: $4,000 – $4,999 USD/mes es aceptable SOLO SI el rol es `full-time` con contrato `long-term`. Si es por horas en este rango, descartar.
-- **R1.3** Descarte inmediato: < $4,000 USD/mes en contratos mensuales, o < $35/h SOLO si el contrato es por pago por hora laborada.
+- **R1.3** Descarte inmediato: salario explícito < $4,000 USD/mes en contratos mensuales, o salario explícito < $35/h SOLO si el contrato es por pago por hora laborada.
+- **R1.4** Si el salario NO aparece en la descripción, NO descartar. Clasificar como 🟠 NARANJA por falta de información salarial.
 
 ### REQ-2: Stack Tecnológico
 

@@ -55,7 +55,17 @@ class DeepSeekClient(LLMClient):
         )
         text = response.choices[0].message.content or "{}"
         result = MessageResult.model_validate_json(text)
-        return MessageDraft(offer_id=offer.id, content=result.content)
+        return MessageDraft(
+            offer_id=offer.id, content=_truncate_message(result.content)
+        )
+
+
+def _truncate_message(text: str, max_length: int = 700) -> str:
+    """Recorta el draft al límite de caracteres; el LLM a veces lo excede."""
+    if len(text) <= max_length:
+        return text
+    cut = text.rfind(" ", 0, max_length - 3)
+    return text[:cut].rstrip() + "..." if cut > 0 else text[:max_length]
 
 
 def _build_evaluation_prompt(offer: JobOffer) -> str:
@@ -77,7 +87,8 @@ Descripción:
 REGLAS DEL USUARIO:
 - Salario objetivo: $5,000-$7,000+ USD/mes.
 - Aceptable solo si full-time long-term: $4,000-$4,999/mes.
-- Descartar si < $4,000/mes mensual, o < $35/h SOLO si es por hora.
+- Descartar SOLO SI el salario está explícito y es < $4,000/mes mensual, o < $35/h en contrato por hora.
+- Si el salario NO aparece en la descripción, NO descartar: clasificar NARANJA por falta de información salarial.
 - Stack ideal: Node.js, TypeScript, React, Next.js, AI.
 - Aceptar Python solo si también incluye Node.js/TypeScript.
 - Descartar roles 100% Python senior, DevOps-first, Java o .NET monolítico.
