@@ -9,12 +9,16 @@ class EvaluationResult(BaseModel):
     """Schema Pydantic del LLM para structured output; como un DTO de class-validator."""
 
     score: Score
-    reason: str = Field(..., max_length=500)
+    reason: str
     missing_skills: List[str] = Field(default_factory=list)
     matched_skills: List[str] = Field(default_factory=list)
 
 
 class MessageResult(BaseModel):
-    """Schema Pydantic del mensaje generado por el LLM."""
+    """Schema Pydantic del mensaje generado por el LLM.
 
-    content: str = Field(..., max_length=700)
+    No limitamos aquí a 700 caracteres porque el LLM a veces lo excede;
+    el cliente recorta después de validar el JSON.
+    """
+
+    content: str
