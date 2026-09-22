@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Career Agent Dashboard</title>
+  <style>
+    :root {
+      --red: #ef4444;
+      --orange: #f97316;
+      --green: #22c55e;
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #d1d5db;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .header {
+      background: #111827;
+      color: #fff;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .filters {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+    .filters label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+    .filters select,
+    .filters input[type="text"] {
+      padding: 0.45rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .filters input[type="text"] {
+      min-width: 260px;
+    }
+    .filters label.checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.875rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .empty {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+    .cards {
+      display: grid;
+      gap: 1rem;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 6px solid var(--border);
+    }
+    .card.red { border-left-color: var(--red); }
+    .card.orange { border-left-color: var(--orange); }
+    .card.green { border-left-color: var(--green); }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 0.15rem 0;
+    }
+    .company {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      margin-right: 0.35rem;
+    }
+    .badge.remote { background: #dbeafe; color: #1e40af; }
+    .badge.contract { background: #f3e8ff; color: #6b21a8; }
+    .badge.full_time { background: #dcfce7; color: #166534; }
+    .tags { margin: 0.6rem 0; }
+    .tag {
+      display: inline-block;
+      background: #e5e7eb;
+      color: #374151;
+      border-radius: 999px;
+      padding: 0.15rem 0.6rem;
+      font-size: 0.72rem;
+      margin: 0.15rem 0.2rem 0 0;
+    }
+    .reason {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      color: #374151;
+      margin: 0.75rem 0;
+      white-space: pre-wrap;
+    }
+    .draft {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+      position: relative;
+      margin-top: 0.5rem;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #16a34a; }
+    .actions {
+      margin-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .actions input[type="checkbox"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      cursor: pointer;
+    }
+    .actions label {
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .notes {
+      width: 100%;
+      min-height: 64px;
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.875rem;
+      resize: vertical;
+    }
+    .status {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <h1>AI Career Agent Dashboard</h1>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="filters">
+      <div>
+        <label for="daysFilter">Días</label>
+        <select id="daysFilter">
+          <option value="5">Últimos 5</option>
+          <option value="10">Últimos 10</option>
+          <option value="15">Últimos 15</option>
+          <option value="0" selected>Todo el historial</option>
+        </select>
+      </div>
+      <label class="checkbox">
+        <input type="checkbox" id="remoteFilter"> Solo remoto
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" id="fulltimeFilter"> Solo full-time
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" id="hideAppliedFilter"> Ocultar aplicadas
+      </label>
+      <div style="flex:1; min-width:220px;">
+        <label for="searchFilter">Buscar</label>
+        <input type="text" id="searchFilter" placeholder="empresa, título, stack, descripción..." style="width:100%;">
+      </div>
+    </div>
+
+    <div id="offersContainer"></div>
+  </div>
+
+  <script>
+    const container = document.getElementById('offersContainer');
+    let allOffers = [];
+    const drafts = {};
+
+    async function loadOffers() {
+      const days = document.getElementById('daysFilter').value;
+      const url = days > 0 ? `/api/offers?days=${days}` : '/api/offers';
+      const res = await fetch(url);
+      allOffers = await res.json();
+      render();
+    }
+
+    function render() {
+      const remoteOnly = document.getElementById('remoteFilter').checked;
+      const fulltimeOnly = document.getElementById('fulltimeFilter').checked;
+      const hideApplied = document.getElementById('hideAppliedFilter').checked;
+      const query = document.getElementById('searchFilter').value.toLowerCase().trim();
+
+      const filtered = allOffers.filter(o => {
+        if (remoteOnly && !o.is_remote) return false;
+        if (fulltimeOnly && o.contract_type !== 'full_time') return false;
+        if (hideApplied && o.applied) return false;
+        if (query) {
+          const haystack = `${o.company} ${o.title} ${o.stack_tags || ''} ${o.description || ''}`.toLowerCase();
+          if (!haystack.includes(query)) return false;
+        }
+        return true;
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = '<div class="empty">No hay ofertas que coincidan con los filtros.</div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(o => {
+        drafts[o.id] = o.draft_content || '';
+        const badges = [];
+        if (o.is_remote) badges.push('<span class="badge remote">Remoto</span>');
+        if (o.contract_type === 'full_time') badges.push('<span class="badge full_time">Full-time</span>');
+        else if (o.contract_type === 'contract') badges.push('<span class="badge contract">Contract</span>');
+
+        return `
+          <div class="card ${o.score}">
+            <div class="card-header">
+              <div>
+                <div class="title">${escapeHtml(o.title)}</div>
+                <div class="company">${escapeHtml(o.company)} · ${escapeHtml(o.location || 'N/A')}</div>
+                <div class="meta">${formatDate(o.processed_at_utc)} · ${badges.join('')}</div>
+              </div>
+              <a href="${escapeHtml(o.url || '#')}" target="_blank" rel="noopener" style="font-size:0.85rem; white-space:nowrap;">Ver en LinkedIn ↗</a>
+            </div>
+            <div class="tags">${(o.stack_tags || '').split(',').filter(t => t).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+            <div class="reason">${escapeHtml(o.reason)}</div>
+            ${o.draft_content ? `
+            <div class="draft">
+              <button class="copy-btn" onclick="copyDraft('${o.id}', this)">Copiar</button>
+              ${escapeHtml(o.draft_content)}
+            </div>` : ''}
+            <div class="actions">
+              <input type="checkbox" id="applied-${o.id}" ${o.applied ? 'checked' : ''} onchange="toggleApplied('${o.id}', this.checked)">
+              <label for="applied-${o.id}">Aplicado</label>
+              <span class="status" id="status-${o.id}"></span>
+            </div>
+            <textarea class="notes" placeholder="Notas..." oninput="saveNotes('${o.id}', this.value)">${escapeHtml(o.notes || '')}</textarea>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-CO') + ' ' + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function toggleApplied(id, applied) {
+      await fetch(`/api/offers/${id}/applied`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applied })
+      });
+    }
+
+    let noteTimers = {};
+    async function saveNotes(id, notes) {
+      clearTimeout(noteTimers[id]);
+      noteTimers[id] = setTimeout(async () => {
+        await fetch(`/api/offers/${id}/notes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes })
+        });
+        const status = document.getElementById(`status-${id}`);
+        if (status) {
+          status.textContent = 'Guardado';
+          setTimeout(() => status.textContent = '', 1200);
+        }
+      }, 500);
+    }
+
+    function copyDraft(id, btn) {
+      const text = drafts[id] || '';
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copiado';
+        setTimeout(() => btn.textContent = 'Copiar', 1500);
+      });
+    }
+
+    document.getElementById('daysFilter').addEventListener('change', loadOffers);
+    document.getElementById('remoteFilter').addEventListener('change', render);
+    document.getElementById('fulltimeFilter').addEventListener('change', render);
+    document.getElementById('hideAppliedFilter').addEventListener('change', render);
+    document.getElementById('searchFilter').addEventListener('input', render);
+
+    loadOffers();
+  </script>
+</body>
+</html>

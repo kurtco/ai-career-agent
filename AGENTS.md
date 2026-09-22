@@ -14,7 +14,8 @@
 - `uv run pytest` — ejecuta la suite de tests.
 - `uv run ai-career-agent --now` — corre el pipeline una vez (requiere `.env` + `data/session_state.json`). Genera y abre automáticamente un reporte HTML en `data/reports/`.
 - `uv run ai-career-agent --now --no-open` — igual, pero no abre el navegador.
-- `uv run ai-career-agent --report-only` — regenera el reporte HTML desde `data/history.db` sin nueva búsqueda.
+- `uv run ai-career-agent --report-only` — regenera el reporte HTML con todo el historial de `data/history.db` sin nueva búsqueda.
+- `uv run ai-career-agent --dashboard` — levanta el dashboard interactivo en `http://127.0.0.1:8000`.
 - `uv run python scripts/create_session.py` — abre LinkedIn para logueo manual y guarda `data/session_state.json`.
 - `uv run playwright install chromium` — descarga el navegador de Playwright (necesario la primera vez).
 
@@ -22,6 +23,7 @@
 
 - Proyecto Python inicializado con `uv`, Python 3.12.
 - Código bajo `src/ai_career_agent/` siguiendo Clean Architecture.
+- Dashboard interactivo Flask en `src/ai_career_agent/infrastructure/dashboard/`.
 - Tests unitarios en `tests/`; CA-1 a CA-4 cubiertos con mocks.
 - E2E real bloqueado hasta tener `GEMINI_API_KEY`/`DEEPSEEK_API_KEY` y `data/session_state.json`.
 

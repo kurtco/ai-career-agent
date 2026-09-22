@@ -42,6 +42,7 @@ Clean Architecture: `domain` → `application` → `adapters` → `infrastructur
    - Get a `DEEPSEEK_API_KEY` at [DeepSeek Platform](https://platform.deepseek.com/api_keys).
    - Optional: set `COMPANY_BLACKLIST=BairesDev,Lumenalta,Hire Hangar` to skip companies you don't want.
    - Optional: set `LINKEDIN_EXPORT_PATH=data/linkedin_export` if you want to import your LinkedIn Job Alerts.
+   - Optional: set `DASHBOARD_HOST=127.0.0.1` and `DASHBOARD_PORT=8000` to configure the interactive dashboard.
 
 3. Create a LinkedIn session manually with your secondary account:
    ```bash
@@ -79,11 +80,21 @@ After each run, an HTML report is generated in `data/reports/` and opened automa
 
 Use `--no-open` if you do not want the browser to open automatically.
 
-To regenerate today's report from the local database without running a new search:
+To regenerate the report from the full local history without running a new search:
 
 ```bash
 uv run ai-career-agent --report-only
 ```
+
+### Option C — Interactive dashboard
+
+Launch the web dashboard to browse, filter, mark as applied and add notes to every stored offer:
+
+```bash
+uv run ai-career-agent --dashboard
+```
+
+Then open `http://127.0.0.1:8000`.
 
 ## Testing
 

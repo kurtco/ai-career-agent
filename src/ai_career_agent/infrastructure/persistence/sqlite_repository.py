@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Tuple
 from zoneinfo import ZoneInfo
@@ -41,6 +41,8 @@ class SqliteOfferRepository(OfferRepository):
             )
             if not self._column_exists(conn, "offers", "url"):
                 self._migrate_v2(conn)
+            if not self._column_exists(conn, "offers", "applied"):
+                self._migrate_v3(conn)
 
     @staticmethod
     def _column_exists(conn: sqlite3.Connection, table: str, column: str) -> bool:
@@ -87,6 +89,11 @@ class SqliteOfferRepository(OfferRepository):
             )
         conn.execute("DROP TABLE offers")
         conn.execute("ALTER TABLE offers_new RENAME TO offers")
+
+    def _migrate_v3(self, conn: sqlite3.Connection) -> None:
+        """Agrega columnas de gestión manual desde el dashboard."""
+        conn.execute("ALTER TABLE offers ADD COLUMN applied INTEGER DEFAULT 0")
+        conn.execute("ALTER TABLE offers ADD COLUMN notes TEXT DEFAULT ''")
 
     def count_today(self) -> int:
         today = self._today_local()
@@ -148,6 +155,62 @@ class SqliteOfferRepository(OfferRepository):
             conn.execute(
                 "UPDATE offers SET draft_content = ? WHERE id = ?",
                 (draft_content, offer_id),
+            )
+
+    def find_all_offers(self, days: int | None = None) -> List[Tuple[JobOffer, str | None]]:
+        """Devuelve todas las ofertas como entidades; útil para reportes estáticos."""
+        sql = """
+            SELECT id, title, company, location, description, salary_min, salary_max,
+                   currency, compensation_period, contract_type, is_remote, stack_tags,
+                   url, score, reason, missing_skills, matched_skills, draft_content
+            FROM offers
+        """
+        params: Tuple = ()
+        if days is not None and days > 0:
+            cutoff = (
+                datetime.now(ZoneInfo(self.timezone)) - timedelta(days=days)
+            ).date().isoformat()
+            sql += " WHERE processed_date_local >= ?"
+            params = (cutoff,)
+        sql += " ORDER BY processed_at_utc DESC"
+        with self._connect() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [self._row_to_offer(row) for row in rows]
+
+    def find_all(self, days: int | None = None) -> List[dict]:
+        """Devuelve todas las ofertas para el dashboard; filtro por días opcional."""
+        sql = """
+            SELECT id, title, company, location, description, salary_min, salary_max,
+                   currency, compensation_period, contract_type, is_remote, stack_tags,
+                   url, score, reason, missing_skills, matched_skills, draft_content,
+                   processed_at_utc, processed_date_local, applied, notes
+            FROM offers
+        """
+        params: Tuple = ()
+        if days is not None and days > 0:
+            cutoff = (
+                datetime.now(ZoneInfo(self.timezone)) - timedelta(days=days)
+            ).date().isoformat()
+            sql += " WHERE processed_date_local >= ?"
+            params = (cutoff,)
+        sql += " ORDER BY processed_at_utc DESC"
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(sql, params).fetchall()
+        return [dict(row) for row in rows]
+
+    def update_applied(self, offer_id: str, applied: bool) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE offers SET applied = ? WHERE id = ?",
+                (int(applied), offer_id),
+            )
+
+    def update_notes(self, offer_id: str, notes: str) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE offers SET notes = ? WHERE id = ?",
+                (notes, offer_id),
             )
 
     def find_today(self) -> List[Tuple[JobOffer, str | None]]:

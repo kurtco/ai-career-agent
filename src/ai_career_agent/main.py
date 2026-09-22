@@ -14,6 +14,7 @@ from ai_career_agent.application.use_cases.generate_message import GenerateMessa
 from ai_career_agent.domain.entities import MessageDraft, Score
 from ai_career_agent.domain.ports import LLMClient
 from ai_career_agent.infrastructure.config import settings
+from ai_career_agent.infrastructure.dashboard.flask_app import run_dashboard
 from ai_career_agent.infrastructure.llm.deepseek_client import DeepSeekClient
 from ai_career_agent.infrastructure.llm.facade import LLMClientFacade
 from ai_career_agent.infrastructure.llm.gemini_client import GeminiClient
@@ -100,11 +101,11 @@ async def run_scheduler() -> None:
 
 
 async def generate_report_only() -> None:
-    """Genera el reporte HTML desde las ofertas guardadas hoy sin hacer scraping."""
+    """Genera el reporte HTML desde todo el historial sin hacer scraping."""
     repository = SqliteOfferRepository(settings.db_path, settings.timezone)
-    entries = repository.find_today()
+    entries = repository.find_all_offers()
     if not entries:
-        print("No hay ofertas procesadas hoy para generar el reporte.")
+        print("No hay ofertas guardadas para generar el reporte.")
         return
 
     report = HtmlReportGenerator(settings.reports_dir, auto_open=settings.auto_open_report)
@@ -114,6 +115,11 @@ async def generate_report_only() -> None:
 
     report_path = report.generate()
     print(f"\n📄 Reporte HTML: {report_path}")
+
+
+def run_dashboard_server() -> None:
+    """Levanta el servidor Flask del dashboard interactivo."""
+    run_dashboard(settings.dashboard_host, settings.dashboard_port)
 
 
 def main() -> None:
@@ -128,7 +134,12 @@ def main() -> None:
     parser.add_argument(
         "--report-only",
         action="store_true",
-        help="Genera el reporte HTML desde las ofertas de hoy sin nueva búsqueda",
+        help="Genera el reporte HTML desde todo el historial sin nueva búsqueda",
+    )
+    parser.add_argument(
+        "--dashboard",
+        action="store_true",
+        help="Inicia el servidor web interactivo del dashboard",
     )
     args = parser.parse_args()
 
@@ -137,6 +148,8 @@ def main() -> None:
 
     if args.report_only:
         asyncio.run(generate_report_only())
+    elif args.dashboard:
+        run_dashboard_server()
     elif args.now:
         asyncio.run(run_once())
     else:
