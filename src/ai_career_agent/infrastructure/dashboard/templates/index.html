@@ -227,6 +227,14 @@
       <label class="checkbox">
         <input type="checkbox" id="hideAppliedFilter"> Ocultar aplicadas
       </label>
+      <div>
+        <label for="perPageFilter">Por página</label>
+        <select id="perPageFilter">
+          <option value="10" selected>10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+        </select>
+      </div>
       <div style="flex:1; min-width:220px;">
         <label for="searchFilter">Buscar</label>
         <input type="text" id="searchFilter" placeholder="empresa, título, stack, descripción..." style="width:100%;">
@@ -234,44 +242,56 @@
     </div>
 
     <div id="offersContainer"></div>
+    <div id="paginationContainer"></div>
   </div>
 
   <script>
     const container = document.getElementById('offersContainer');
-    let allOffers = [];
+    const paginationContainer = document.getElementById('paginationContainer');
     const drafts = {};
+    let state = { page: 1, perPage: 10, total: 0, pages: 0 };
 
-    async function loadOffers() {
-      const days = document.getElementById('daysFilter').value;
-      const url = days > 0 ? `/api/offers?days=${days}` : '/api/offers';
-      const res = await fetch(url);
-      allOffers = await res.json();
-      render();
+    function getFilters() {
+      return {
+        days: parseInt(document.getElementById('daysFilter').value, 10),
+        remoteOnly: document.getElementById('remoteFilter').checked,
+        fullTimeOnly: document.getElementById('fulltimeFilter').checked,
+        hideApplied: document.getElementById('hideAppliedFilter').checked,
+        search: document.getElementById('searchFilter').value.trim(),
+        perPage: parseInt(document.getElementById('perPageFilter').value, 10),
+      };
     }
 
-    function render() {
-      const remoteOnly = document.getElementById('remoteFilter').checked;
-      const fulltimeOnly = document.getElementById('fulltimeFilter').checked;
-      const hideApplied = document.getElementById('hideAppliedFilter').checked;
-      const query = document.getElementById('searchFilter').value.toLowerCase().trim();
+    async function loadOffers(resetPage = true) {
+      if (resetPage) state.page = 1;
+      const f = getFilters();
+      state.perPage = f.perPage;
 
-      const filtered = allOffers.filter(o => {
-        if (remoteOnly && !o.is_remote) return false;
-        if (fulltimeOnly && o.contract_type !== 'full_time') return false;
-        if (hideApplied && o.applied) return false;
-        if (query) {
-          const haystack = `${o.company} ${o.title} ${o.stack_tags || ''} ${o.description || ''}`.toLowerCase();
-          if (!haystack.includes(query)) return false;
-        }
-        return true;
-      });
+      const params = new URLSearchParams();
+      params.set('page', state.page);
+      params.set('per_page', f.perPage);
+      if (f.days > 0) params.set('days', f.days);
+      if (f.remoteOnly) params.set('remote_only', 'true');
+      if (f.fullTimeOnly) params.set('full_time_only', 'true');
+      if (f.hideApplied) params.set('hide_applied', 'true');
+      if (f.search) params.set('search', f.search);
 
-      if (!filtered.length) {
+      const res = await fetch(`/api/offers?${params.toString()}`);
+      const data = await res.json();
+      state.total = data.total;
+      state.pages = data.pages;
+      render(data.offers);
+      renderPagination();
+    }
+
+    function render(offers) {
+      if (!offers.length) {
         container.innerHTML = '<div class="empty">No hay ofertas que coincidan con los filtros.</div>';
+        paginationContainer.innerHTML = '';
         return;
       }
 
-      container.innerHTML = filtered.map(o => {
+      container.innerHTML = offers.map(o => {
         drafts[o.id] = o.draft_content || '';
         const badges = [];
         if (o.is_remote) badges.push('<span class="badge remote">Remoto</span>');
@@ -304,6 +324,26 @@
           </div>
         `;
       }).join('');
+    }
+
+    function renderPagination() {
+      if (state.pages <= 1) {
+        paginationContainer.innerHTML = '';
+        return;
+      }
+      let html = '<div class="pagination" style="display:flex;gap:0.5rem;justify-content:center;align-items:center;margin-top:1rem;">';
+      html += `<button ${state.page === 1 ? 'disabled' : ''} onclick="changePage(${state.page - 1})">← Anterior</button>`;
+      html += `<span style="font-size:0.9rem;color:#6b7280;">Página ${state.page} de ${state.pages} (${state.total} total)</span>`;
+      html += `<button ${state.page === state.pages ? 'disabled' : ''} onclick="changePage(${state.page + 1})">Siguiente →</button>`;
+      html += '</div>';
+      paginationContainer.innerHTML = html;
+    }
+
+    function changePage(page) {
+      if (page < 1 || page > state.pages) return;
+      state.page = page;
+      loadOffers(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function escapeHtml(str) {
@@ -349,11 +389,16 @@
       });
     }
 
-    document.getElementById('daysFilter').addEventListener('change', loadOffers);
-    document.getElementById('remoteFilter').addEventListener('change', render);
-    document.getElementById('fulltimeFilter').addEventListener('change', render);
-    document.getElementById('hideAppliedFilter').addEventListener('change', render);
-    document.getElementById('searchFilter').addEventListener('input', render);
+    let searchTimer;
+    document.getElementById('searchFilter').addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => loadOffers(true), 400);
+    });
+    document.getElementById('daysFilter').addEventListener('change', () => loadOffers(true));
+    document.getElementById('perPageFilter').addEventListener('change', () => loadOffers(true));
+    document.getElementById('remoteFilter').addEventListener('change', () => loadOffers(true));
+    document.getElementById('fulltimeFilter').addEventListener('change', () => loadOffers(true));
+    document.getElementById('hideAppliedFilter').addEventListener('change', () => loadOffers(true));
 
     loadOffers();
   </script>

@@ -20,9 +20,40 @@ def create_app() -> Flask:
 
     @app.route("/api/offers")
     def api_offers() -> dict:
+        """Lista paginada y filtrada de ofertas para el dashboard."""
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=10, type=int)
         days = request.args.get("days", type=int)
-        offers = repository.find_all(days=days)
-        return jsonify(offers)
+        remote_only = request.args.get("remote_only", default="false").lower() == "true"
+        full_time_only = request.args.get("full_time_only", default="false").lower() == "true"
+        hide_applied = request.args.get("hide_applied", default="false").lower() == "true"
+        search = request.args.get("search", default="", type=str)
+
+        if page < 1:
+            page = 1
+        if per_page < 1:
+            per_page = 10
+        if per_page > 100:
+            per_page = 100
+
+        offers, total = repository.find_filtered(
+            days=days if days and days > 0 else None,
+            remote_only=remote_only,
+            full_time_only=full_time_only,
+            hide_applied=hide_applied,
+            search=search,
+            limit=per_page,
+            offset=(page - 1) * per_page,
+        )
+        return jsonify(
+            {
+                "offers": offers,
+                "total": total,
+                "page": page,
+                "per_page": per_page,
+                "pages": (total + per_page - 1) // per_page,
+            }
+        )
 
     @app.route("/api/offers/<offer_id>/applied", methods=["POST"])
     def api_applied(offer_id: str) -> dict:

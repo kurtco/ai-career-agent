@@ -66,3 +66,4 @@
 - [x] T030 — Comando `--dashboard` en `main.py` para levantar el servidor en `http://127.0.0.1:8000`
 - [x] T031 — Borrar registros corruptos identificados (Softtek `4467694922`, Proxify `4309397450`)
 - [x] T032 — Documentar dashboard y `--report-only` actualizado en `README.md` y `AGENTS.md`
+- [x] T033 — Agregar paginación server-side al dashboard para escalar con grandes volúmenes de ofertas

@@ -177,27 +177,75 @@ class SqliteOfferRepository(OfferRepository):
             rows = conn.execute(sql, params).fetchall()
         return [self._row_to_offer(row) for row in rows]
 
-    def find_all(self, days: int | None = None) -> List[dict]:
-        """Devuelve todas las ofertas para el dashboard; filtro por días opcional."""
-        sql = """
+    def _filter_clauses(
+        self,
+        days: int | None,
+        remote_only: bool,
+        full_time_only: bool,
+        hide_applied: bool,
+        search: str,
+    ) -> Tuple[List[str], List]:
+        """Construye WHERE y parámetros para consultas filtradas del dashboard."""
+        where: List[str] = []
+        params: List = []
+        if days is not None and days > 0:
+            cutoff = (
+                datetime.now(ZoneInfo(self.timezone)) - timedelta(days=days)
+            ).date().isoformat()
+            where.append("processed_date_local >= ?")
+            params.append(cutoff)
+        if remote_only:
+            where.append("is_remote = 1")
+        if full_time_only:
+            where.append("contract_type = ?")
+            params.append("full_time")
+        if hide_applied:
+            where.append("applied = 0")
+        if search.strip():
+            where.append(
+                "LOWER(company || ' ' || title || ' ' || COALESCE(stack_tags,'') || ' ' || COALESCE(description,'')) LIKE ?"
+            )
+            params.append(f"%{search.lower().strip()}%")
+        return where, params
+
+    def find_filtered(
+        self,
+        days: int | None = None,
+        remote_only: bool = False,
+        full_time_only: bool = False,
+        hide_applied: bool = False,
+        search: str = "",
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> Tuple[List[dict], int]:
+        """Devuelve ofertas paginadas y filtradas para el dashboard."""
+        where, params = self._filter_clauses(
+            days, remote_only, full_time_only, hide_applied, search
+        )
+        where_clause = " WHERE " + " AND ".join(where) if where else ""
+
+        count_sql = f"SELECT COUNT(*) FROM offers{where_clause}"
+        select_sql = """
             SELECT id, title, company, location, description, salary_min, salary_max,
                    currency, compensation_period, contract_type, is_remote, stack_tags,
                    url, score, reason, missing_skills, matched_skills, draft_content,
                    processed_at_utc, processed_date_local, applied, notes
             FROM offers
-        """
-        params: Tuple = ()
-        if days is not None and days > 0:
-            cutoff = (
-                datetime.now(ZoneInfo(self.timezone)) - timedelta(days=days)
-            ).date().isoformat()
-            sql += " WHERE processed_date_local >= ?"
-            params = (cutoff,)
-        sql += " ORDER BY processed_at_utc DESC"
+        """ + where_clause + " ORDER BY processed_at_utc DESC"
+
+        page_params = list(params)
+        if limit is not None:
+            select_sql += " LIMIT ?"
+            page_params.append(limit)
+        if offset is not None:
+            select_sql += " OFFSET ?"
+            page_params.append(offset)
+
         with self._connect() as conn:
             conn.row_factory = sqlite3.Row
-            rows = conn.execute(sql, params).fetchall()
-        return [dict(row) for row in rows]
+            total = conn.execute(count_sql, params).fetchone()[0]
+            rows = conn.execute(select_sql, page_params).fetchall()
+        return [dict(row) for row in rows], total
 
     def update_applied(self, offer_id: str, applied: bool) -> None:
         with self._connect() as conn:
