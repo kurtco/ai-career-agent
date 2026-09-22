@@ -51,7 +51,9 @@ async def run_once() -> None:
     repository = SqliteOfferRepository(settings.db_path, settings.timezone)
     llm_client = build_llm_client()
     evaluate_use_case = EvaluateJobUseCase(llm_client, repository)
-    scraper = PlaywrightLinkedInScraper(settings.session_state_path)
+    scraper = PlaywrightLinkedInScraper(
+        settings.session_state_path, settings.linkedin_page_timeout
+    )
     fetch_use_case = FetchOffersUseCase(
         scraper=scraper,
         repository=repository,

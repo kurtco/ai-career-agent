@@ -16,8 +16,9 @@ from ai_career_agent.domain.ports import JobScraper
 class PlaywrightLinkedInScraper(JobScraper):
     """Scraper de LinkedIn con comportamiento humano; adaptador de infraestructura."""
 
-    def __init__(self, session_state_path: Path):
+    def __init__(self, session_state_path: Path, page_timeout: int = 120000):
         self.session_state_path = session_state_path
+        self.page_timeout = page_timeout
 
     async def fetch(self, search_url: str, max_offers: int) -> List[JobOffer]:
         if not self.session_state_path.exists():
@@ -36,7 +37,7 @@ class PlaywrightLinkedInScraper(JobScraper):
             page = await context.new_page()
 
             search_url = self._ensure_last_24h(search_url)
-            await page.goto(search_url, wait_until="domcontentloaded", timeout=60000)
+            await page.goto(search_url, wait_until="domcontentloaded", timeout=self.page_timeout)
             await self._assert_not_blocked(page)
             await self._human_delay()
             await self._organic_scroll(page)
@@ -72,7 +73,7 @@ class PlaywrightLinkedInScraper(JobScraper):
     async def _extract_job_detail(self, context, url: str) -> JobOffer | None:
         page = await context.new_page()
         try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            await page.goto(url, wait_until="domcontentloaded", timeout=self.page_timeout)
             await self._assert_not_blocked(page)
             await self._human_delay()
             await self._organic_scroll(page)

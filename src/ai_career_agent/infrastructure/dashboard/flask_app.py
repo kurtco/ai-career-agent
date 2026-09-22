@@ -33,8 +33,8 @@ def create_app() -> Flask:
             page = 1
         if per_page < 1:
             per_page = 10
-        if per_page > 100:
-            per_page = 100
+        if per_page > 200:
+            per_page = 200
 
         offers, total = repository.find_filtered(
             days=days if days and days > 0 else None,

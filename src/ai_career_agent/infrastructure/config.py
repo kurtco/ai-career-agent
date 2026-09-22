@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     auto_open_report: bool = True
     dashboard_host: str = "127.0.0.1"
     dashboard_port: int = 8000
+    linkedin_page_timeout: int = 120000
     linkedin_search_url: str = (
         "https://www.linkedin.com/jobs/search/?keywords=typescript"
     )
