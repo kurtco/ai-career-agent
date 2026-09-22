@@ -40,7 +40,7 @@ Clean Architecture: `domain` → `application` → `adapters` → `infrastructur
    ```
    - Get a free `GEMINI_API_KEY` at [Google AI Studio](https://aistudio.google.com/app/apikey).
    - Get a `DEEPSEEK_API_KEY` at [DeepSeek Platform](https://platform.deepseek.com/api_keys).
-   - Optional: set `COMPANY_BLACKLIST=BairesDev,Lumenalta` to skip companies you don't want.
+   - Optional: set `COMPANY_BLACKLIST=BairesDev,Lumenalta,Hire Hangar` to skip companies you don't want.
    - Optional: set `LINKEDIN_EXPORT_PATH=data/linkedin_export` if you want to import your LinkedIn Job Alerts.
 
 3. Create a LinkedIn session manually with your secondary account:
